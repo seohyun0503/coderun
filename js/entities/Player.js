@@ -25,6 +25,9 @@ const DOUBLE_JUMP_FORCE = -720;
 const MAX_JUMPS         = 2;
 const SLIDE_DURATION    = 0.5;
 const INVINCIBLE_DUR    = 1.0;
+
+const FAST_FALL_VY   = 650;   // initial downward velocity on air-slide
+const AIR_SLIDE_GRAV = 0.25;  // gravity multiplier during air-slide
 const BLINK_INTERVAL    = 0.1;
 
 const DEFAULT_HP = 1;
@@ -106,6 +109,7 @@ export class Player extends Entity {
 
     this._slideActive = false;
     this._slideTimer  = 0;
+    this._airSlide    = false;
 
     this._animKey  = 'run';
     this._animTime = 0;
@@ -130,8 +134,22 @@ export class Player extends Entity {
   }
 
   slide() {
-    if (this._slideActive || !this._onGround) return;
+    if (this._slideActive) return;
+
+    if (!this._onGround) {
+      // Air-slide: crouched hitbox + controlled fast-fall
+      this._slideActive = true;
+      this._airSlide    = true;
+      this._slideTimer  = 0;
+      this.height       = SLIDE_H;
+      this.y           += NORMAL_H - SLIDE_H;
+      this.vy           = Math.max(this.vy, FAST_FALL_VY);
+      this.state        = PlayerState.SLIDING;
+      return;
+    }
+
     this._slideActive = true;
+    this._airSlide    = false;
     this._slideTimer  = 0;
     this.height       = SLIDE_H;
     this.y           += NORMAL_H - SLIDE_H;
@@ -155,8 +173,9 @@ export class Player extends Entity {
   // ─── Update ─────────────────────────────────────────────────────────────────
 
   update(dt, slideHeld = false) {
-    // Physics
-    this.vy += GRAVITY * dt;
+    // Physics — reduced gravity during air-slide for controlled fast-fall
+    const gravMult = (this._airSlide && !this._onGround) ? AIR_SLIDE_GRAV : 1.0;
+    this.vy += GRAVITY * gravMult * dt;
     this.y  += this.vy * dt;
 
     // Ground collision
@@ -167,8 +186,12 @@ export class Player extends Entity {
       if (!this._onGround) {
         this._onGround  = true;
         this._jumpsLeft = MAX_JUMPS;
-        if (this.state === PlayerState.JUMPING ||
-            this.state === PlayerState.DOUBLE_JUMPING) {
+        if (this._airSlide) {
+          // Land from air-slide → continue as ground slide
+          this._airSlide   = false;
+          this._slideTimer = 0;
+        } else if (this.state === PlayerState.JUMPING ||
+                   this.state === PlayerState.DOUBLE_JUMPING) {
           this.state = PlayerState.RUNNING;
         }
       }
@@ -176,8 +199,8 @@ export class Player extends Entity {
       this._onGround = false;
     }
 
-    // Slide timer
-    if (this._slideActive) {
+    // Slide timer — only counts down while on the ground
+    if (this._slideActive && !this._airSlide) {
       this._slideTimer += dt;
       if (this._slideTimer >= SLIDE_DURATION) {
         if (slideHeld) {
@@ -266,6 +289,7 @@ export class Player extends Entity {
   _endSlide() {
     if (!this._slideActive) return;
     this._slideActive = false;
+    this._airSlide    = false;
     this.y           -= NORMAL_H - SLIDE_H;
     this.height       = NORMAL_H;
     this.state        = this._onGround ? PlayerState.RUNNING : PlayerState.JUMPING;

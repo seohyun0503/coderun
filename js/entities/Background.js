@@ -27,6 +27,14 @@ export class Background {
   }
 
   render(ctx) {
+    // Sky gradient — top matches gray city tone, bottom fades to ground color
+    const sky = ctx.createLinearGradient(0, 0, 0, CANVAS.HEIGHT);
+    sky.addColorStop(0,    '#6a7888');
+    sky.addColorStop(0.65, '#3a4858');
+    sky.addColorStop(1,    '#04040e');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT);
+
     this._drawLayer(ctx, 'bg_far', this._offsets['bg_far']);
     this._drawLayer(ctx, 'bg_mid', this._offsets['bg_mid']);
   }

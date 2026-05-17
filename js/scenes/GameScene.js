@@ -266,9 +266,6 @@ export class GameScene extends Scene {
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   render(ctx) {
-    ctx.fillStyle = COLORS.SKY;
-    ctx.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT);
-
     this._bg.render(ctx);
     this._ground.render(ctx);
     this._bg.renderForeground(ctx);
