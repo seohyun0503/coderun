@@ -1,12 +1,12 @@
-import { CANVAS, COLORS, SCENES } from '../config/constants.js';
+import { CANVAS, SCENES } from '../config/constants.js';
 import { Scene } from './Scene.js';
 
-// ─── Message pools ────────────────────────────────────────────────────────────
+// ─── Text pools ───────────────────────────────────────────────────────────────
 
 const FAIL_HEADLINES = [
-  'STACK OVERFLOW :(',
-  'BUILD FAILED',
-  'SEGMENTATION FAULT',
+  '★  GAME OVER  ★',
+  '★  BUILD FAILED  ★',
+  '★  취업 실패!  ★',
 ];
 
 const CAUSE_MSGS = [
@@ -26,11 +26,11 @@ const ENCOURAGE_MSGS = [
 // ─── Button definitions ───────────────────────────────────────────────────────
 
 const BUTTONS = [
-  { label: 'RETRY',     key: 'retry' },
-  { label: 'MAIN MENU', key: 'menu'  },
+  { label: '▶  RETRY',     key: 'retry' },
+  { label: '◀  MAIN MENU', key: 'menu'  },
 ];
 
-const BTN_W = 210, BTN_H = 50, BTN_GAP = 28;
+const BTN_W = 222, BTN_H = 56, BTN_GAP = 32;
 
 // ─── GameOverScene ────────────────────────────────────────────────────────────
 
@@ -44,11 +44,12 @@ export class GameOverScene extends Scene {
     this._headline     = FAIL_HEADLINES[0];
     this._causeMsg     = CAUSE_MSGS[0];
     this._encourageMsg = ENCOURAGE_MSGS[0];
-    this._selectedBtn  = 0;
-    this._blinkTimer   = 0;
+    this._selBtn       = 0;
+    this._blink        = 0;
     this._blinkShow    = true;
     this._particles    = [];
-    this._enterTimer   = 0;   // delay before input is accepted
+    this._enterTimer   = 0;
+    this._t            = 0;
   }
 
   // ─── Lifecycle ───────────────────────────────────────────────────────────────
@@ -57,8 +58,9 @@ export class GameOverScene extends Scene {
     this._score      = Math.floor(score);
     this._jellyCount = jellyCount;
     this._bestScore  = parseInt(localStorage.getItem('coderun_best') ?? '0', 10);
-    this._selectedBtn = 0;
-    this._enterTimer  = 0.6;  // 0.6 s input lock so accidental key presses don't skip
+    this._selBtn     = 0;
+    this._enterTimer = 0.6;
+    this._t          = 0;
 
     this._headline     = FAIL_HEADLINES[Math.floor(Math.random() * FAIL_HEADLINES.length)];
     this._causeMsg     = CAUSE_MSGS[Math.floor(Math.random() * CAUSE_MSGS.length)];
@@ -77,15 +79,14 @@ export class GameOverScene extends Scene {
 
   _spawnParticles() {
     const cx = CANVAS.WIDTH / 2;
-    const cy = 120;
     this._particles = Array.from({ length: 70 }, () => ({
-      x: cx, y: cy,
-      vx: (Math.random() - 0.5) * 700,
-      vy: (Math.random() - 0.85) * 550,
-      life: 1.6 + Math.random() * 0.4,
+      x:       cx, y: 108,
+      vx:      (Math.random() - 0.5) * 720,
+      vy:      (Math.random() - 0.85) * 560,
+      life:    1.6 + Math.random() * 0.4,
       maxLife: 2.0,
-      color: `hsl(${Math.random() * 60 + 30}, 95%, 62%)`,
-      r: 2 + Math.random() * 5,
+      color:   `hsl(${Math.random() * 55 + 25}, 95%, 62%)`,
+      r:       2 + Math.random() * 5,
     }));
   }
 
@@ -93,170 +94,225 @@ export class GameOverScene extends Scene {
 
   update(dt) {
     const { input } = this.game;
-
-    this._blinkTimer += dt;
-    if (this._blinkTimer >= 0.55) {
-      this._blinkTimer = 0;
-      this._blinkShow  = !this._blinkShow;
-    }
+    this._t     += dt;
+    this._blink += dt;
+    if (this._blink >= 0.55) { this._blink = 0; this._blinkShow = !this._blinkShow; }
 
     for (const p of this._particles) {
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
+      p.x  += p.vx * dt;
+      p.y  += p.vy * dt;
       p.vy += 860 * dt;
       p.life -= dt;
     }
     this._particles = this._particles.filter(p => p.life > 0);
 
-    if (this._enterTimer > 0) {
-      this._enterTimer -= dt;
-      return;
-    }
+    if (this._enterTimer > 0) { this._enterTimer -= dt; return; }
 
-    if (input.isKeyJustPressed('ArrowUp')) {
-      this._selectedBtn = (this._selectedBtn - 1 + BUTTONS.length) % BUTTONS.length;
-    }
-    if (input.isKeyJustPressed('ArrowDown')) {
-      this._selectedBtn = (this._selectedBtn + 1) % BUTTONS.length;
-    }
-
-    if (input.isKeyJustPressed('Enter') || input.isKeyJustPressed('Space')) {
-      this._confirm();
-    }
-    if (input.isKeyJustPressed('Escape')) {
-      this.game.switchScene(SCENES.MENU);
-    }
+    if (input.isKeyJustPressed('ArrowUp'))
+      this._selBtn = (this._selBtn - 1 + BUTTONS.length) % BUTTONS.length;
+    if (input.isKeyJustPressed('ArrowDown'))
+      this._selBtn = (this._selBtn + 1) % BUTTONS.length;
+    if (input.isKeyJustPressed('Enter') || input.isKeyJustPressed('Space')) this._confirm();
+    if (input.isKeyJustPressed('Escape')) this.game.switchScene(SCENES.MENU);
   }
 
   _confirm() {
-    if (BUTTONS[this._selectedBtn].key === 'retry') {
-      this.game.switchScene(SCENES.GAME);
-    } else {
-      this.game.switchScene(SCENES.MENU);
-    }
+    if (BUTTONS[this._selBtn].key === 'retry') this.game.switchScene(SCENES.GAME);
+    else this.game.switchScene(SCENES.MENU);
   }
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   render(ctx) {
-    ctx.fillStyle = 'rgba(4,4,20,0.94)';
+    const cx = CANVAS.WIDTH / 2;
+
+    // Background — deep warm dark gray
+    ctx.fillStyle = '#0d0b09';
     ctx.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT);
 
-    // Confetti particles
+    // Red-warm radial vignette
+    const vign = ctx.createRadialGradient(cx, CANVAS.HEIGHT / 2, 200, cx, CANVAS.HEIGHT / 2, 700);
+    vign.addColorStop(0, 'rgba(0,0,0,0)');
+    vign.addColorStop(1, 'rgba(155,18,8,0.20)');
+    ctx.fillStyle = vign;
+    ctx.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT);
+
+    // Confetti
     for (const p of this._particles) {
       ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
       ctx.fillStyle   = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
     }
-    ctx.globalAlpha = 1;
-
-    const cx = CANVAS.WIDTH  / 2;
-    const cy = CANVAS.HEIGHT / 2;
+    ctx.globalAlpha  = 1;
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
 
-    // ── Fail headline ─────────────────────────────────────────────────────────
-    ctx.shadowColor = COLORS.OBSTACLE;
-    ctx.shadowBlur  = 34;
-    ctx.fillStyle   = COLORS.OBSTACLE;
-    ctx.font        = 'bold 64px "Courier New", monospace';
-    ctx.fillText(this._headline, cx, 112);
+    // ── Headline box ─────────────────────────────────────────────────────────
+    const pulse  = 0.75 + 0.25 * Math.abs(Math.sin(this._t * 1.4));
+    const hdrX = cx - 326, hdrY = 44, hdrW = 652, hdrH = 78;
+    ctx.fillStyle   = 'rgba(110,16,16,0.28)';
+    ctx.strokeStyle = `rgba(255,68,52,${pulse})`;
+    ctx.lineWidth   = 2;
+    this._rrect(ctx, hdrX, hdrY, hdrW, hdrH, 18);
+    ctx.fill(); ctx.stroke();
+
+    // Corner stars on headline box
+    this._star(ctx, hdrX + 20,       hdrY + hdrH / 2, 9,  '#ff8060', 0.7);
+    this._star(ctx, hdrX + hdrW - 20, hdrY + hdrH / 2, 9, '#ff8060', 0.7);
+
+    ctx.shadowColor = '#ff3838';
+    ctx.shadowBlur  = 28;
+    ctx.fillStyle   = '#ffb090';
+    ctx.font        = 'bold 50px "Courier New", monospace';
+    ctx.fillText(this._headline, cx, hdrY + hdrH / 2);
     ctx.shadowBlur  = 0;
 
-    // ── Cause meme ────────────────────────────────────────────────────────────
-    ctx.fillStyle = 'rgba(255,90,90,0.60)';
-    ctx.font      = '15px "Courier New", monospace';
-    ctx.fillText(this._causeMsg, cx, 168);
+    // Cause message
+    ctx.fillStyle    = 'rgba(255,155,125,0.50)';
+    ctx.font         = '14px "Courier New", monospace';
+    ctx.textBaseline = 'top';
+    ctx.fillText(this._causeMsg, cx, hdrY + hdrH + 14);
 
-    // ── Stats panel ───────────────────────────────────────────────────────────
-    const panelX = cx - 290, panelY = 205, panelW = 580, panelH = 178;
-    ctx.fillStyle   = 'rgba(255,255,255,0.03)';
-    ctx.strokeStyle = 'rgba(255,255,255,0.09)';
-    ctx.lineWidth   = 1;
-    ctx.fillRect(panelX, panelY, panelW, panelH);
-    ctx.strokeRect(panelX, panelY, panelW, panelH);
+    // ── Stats card ───────────────────────────────────────────────────────────
+    const cardX = cx - 292, cardY = 158, cardW = 584, cardH = 198;
+    ctx.fillStyle = 'rgba(16,12,7,0.88)';
+    if (this._newBest) {
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth   = 2;
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur  = 14 + 8 * Math.abs(Math.sin(this._t * 2));
+    } else {
+      ctx.strokeStyle = '#4a3820';
+      ctx.lineWidth   = 1.5;
+    }
+    this._rrect(ctx, cardX, cardY, cardW, cardH, 20);
+    ctx.fill(); ctx.stroke();
+    ctx.shadowBlur = 0;
 
-    const rowLeft  = panelX + 36;
-    const rowRight = panelX + panelW - 36;
+    // Corner stars on card
+    this._star(ctx, cardX + 18,       cardY + 18, 7, '#ffaa30', 0.45);
+    this._star(ctx, cardX + cardW - 18, cardY + 18, 7, '#ffaa30', 0.45);
+
     const rows = [
-      { label: 'SCORE',   value: this._score.toString().padStart(7, '0'),       color: '#00ff88' },
-      { label: 'BEST',    value: this._bestScore.toString().padStart(7, '0'),   color: 'rgba(255,215,0,0.85)' },
-      { label: 'JELLIES', value: this._jellyCount.toString(),                    color: '#f7df1e' },
+      { label: 'SCORE',  value: this._score.toString().padStart(7, '0'),     color: '#00ff88' },
+      { label: 'BEST',   value: this._bestScore.toString().padStart(7, '0'), color: '#ffd700' },
+      { label: 'JELLY',  value: this._jellyCount.toString(),                  color: '#ffb347' },
     ];
 
-    ctx.font         = '18px "Courier New", monospace';
-    ctx.textBaseline = 'top';
-
+    const rowH = cardH / rows.length;
     for (let i = 0; i < rows.length; i++) {
-      const ry = panelY + 20 + i * 46;
+      const ry = cardY + i * rowH + rowH / 2;
 
-      ctx.textAlign = 'left';
-      ctx.fillStyle = 'rgba(255,255,255,0.48)';
-      ctx.fillText(rows[i].label, rowLeft, ry);
+      ctx.textAlign    = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle    = 'rgba(255,218,165,0.48)';
+      ctx.font         = '16px "Courier New", monospace';
+      ctx.fillText(rows[i].label, cardX + 40, ry);
 
-      ctx.textAlign = 'right';
-      ctx.fillStyle = rows[i].color;
-      ctx.fillText(rows[i].value, rowRight, ry);
+      ctx.textAlign   = 'right';
+      ctx.fillStyle   = rows[i].color;
+      ctx.shadowColor = rows[i].color;
+      ctx.shadowBlur  = 8;
+      ctx.font        = 'bold 26px "Courier New", monospace';
+      ctx.fillText(rows[i].value, cardX + cardW - 40, ry);
+      ctx.shadowBlur  = 0;
 
-      // Row divider (except after last)
       if (i < rows.length - 1) {
-        ctx.fillStyle = 'rgba(255,255,255,0.06)';
-        ctx.fillRect(rowLeft, ry + 38, panelW - 72, 1);
+        ctx.fillStyle = 'rgba(200,148,55,0.10)';
+        ctx.fillRect(cardX + 40, cardY + (i + 1) * rowH - 0.5, cardW - 80, 1);
       }
     }
 
     // ── New record badge ──────────────────────────────────────────────────────
-    if (this._newBest) {
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.shadowColor  = '#f5a623';
-      ctx.shadowBlur   = 22;
-      ctx.fillStyle    = '#f5a623';
-      ctx.font         = 'bold 22px "Courier New", monospace';
-      ctx.fillText('★  신규 최고기록!  ★', cx, panelY + panelH + 24);
-      ctx.shadowBlur   = 0;
-    }
-
-    // ── Encouragement ─────────────────────────────────────────────────────────
-    const msgY = panelY + panelH + (this._newBest ? 62 : 26);
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle    = 'rgba(255,255,255,0.30)';
-    ctx.font         = '15px "Courier New", monospace';
-    ctx.fillText(this._encourageMsg, cx, msgY);
-
-    // ── Buttons ───────────────────────────────────────────────────────────────
-    const totalBtnW = BUTTONS.length * BTN_W + (BUTTONS.length - 1) * BTN_GAP;
-    const btnStartX = cx - totalBtnW / 2;
-    const btnY      = 560;
-
-    for (let i = 0; i < BUTTONS.length; i++) {
-      const bx  = btnStartX + i * (BTN_W + BTN_GAP);
-      const sel = i === this._selectedBtn;
-
-      ctx.fillStyle   = sel ? 'rgba(0,212,255,0.13)' : 'rgba(255,255,255,0.04)';
-      ctx.strokeStyle = sel ? COLORS.UI_PRIMARY : 'rgba(255,255,255,0.18)';
-      ctx.lineWidth   = sel ? 2 : 1;
-      ctx.fillRect(bx, btnY, BTN_W, BTN_H);
-      ctx.strokeRect(bx, btnY, BTN_W, BTN_H);
-
-      ctx.fillStyle    = sel ? COLORS.UI_PRIMARY : 'rgba(255,255,255,0.60)';
-      ctx.shadowColor  = sel ? COLORS.UI_PRIMARY : 'transparent';
-      ctx.shadowBlur   = sel ? 12 : 0;
-      ctx.font         = `${sel ? 'bold ' : ''}19px "Courier New", monospace`;
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(BUTTONS[i].label, bx + BTN_W / 2, btnY + BTN_H / 2);
-      ctx.shadowBlur   = 0;
+    if (this._newBest) {
+      const badgeY = cardY + cardH + 20;
+      this._star(ctx, cx - 148, badgeY, 10, '#ffd700', 0.9);
+      this._star(ctx, cx + 148, badgeY, 10, '#ffd700', 0.9);
+      ctx.shadowColor = '#ffd700';
+      ctx.shadowBlur  = 20 + 8 * Math.abs(Math.sin(this._t * 2.5));
+      ctx.fillStyle   = '#ffd700';
+      ctx.font        = 'bold 22px "Courier New", monospace';
+      ctx.fillText('★★  신규 최고기록!  ★★', cx, badgeY);
+      ctx.shadowBlur  = 0;
     }
 
-    // ── Controls hint ─────────────────────────────────────────────────────────
-    ctx.fillStyle    = 'rgba(255,255,255,0.18)';
+    // ── Encouragement ────────────────────────────────────────────────────────
+    const msgY = cardY + cardH + (this._newBest ? 52 : 24);
+    ctx.fillStyle = 'rgba(255,218,158,0.32)';
+    ctx.font      = '15px "Courier New", monospace';
+    ctx.fillText(this._encourageMsg, cx, msgY);
+
+    // ── Buttons ──────────────────────────────────────────────────────────────
+    const totalW = 2 * BTN_W + BTN_GAP;
+    const btnX0  = cx - totalW / 2;
+    const btnY   = 508;
+
+    for (let i = 0; i < BUTTONS.length; i++) {
+      const bx  = btnX0 + i * (BTN_W + BTN_GAP);
+      const sel = i === this._selBtn;
+
+      if (i === 0) {
+        // RETRY — warm orange
+        ctx.fillStyle   = sel ? 'rgba(255,125,26,0.52)' : 'rgba(195,85,18,0.20)';
+        ctx.strokeStyle = sel ? '#ff9020' : 'rgba(175,75,18,0.55)';
+      } else {
+        // MAIN MENU — dark gold
+        ctx.fillStyle   = sel ? 'rgba(255,172,26,0.20)' : 'rgba(18,13,7,0.74)';
+        ctx.strokeStyle = sel ? '#ffaa20' : 'rgba(98,72,32,0.55)';
+      }
+      ctx.lineWidth = sel ? 2 : 1.5;
+      this._rrect(ctx, bx, btnY, BTN_W, BTN_H, 14);
+      ctx.fill();
+      if (sel) { ctx.shadowColor = i === 0 ? '#ff8c18' : '#ffaa20'; ctx.shadowBlur = 14; }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle    = sel ? (i === 0 ? '#ffcc58' : '#ffd058') : 'rgba(255,218,158,0.70)';
+      ctx.shadowColor  = sel ? (i === 0 ? '#ff8c18' : '#ffaa20') : 'transparent';
+      ctx.shadowBlur   = sel ? 10 : 0;
+      ctx.font         = `${sel ? 'bold ' : ''}19px "Courier New", monospace`;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(BUTTONS[i].label, bx + BTN_W / 2, btnY + BTN_H / 2);
+      ctx.shadowBlur = 0;
+    }
+
+    // ── Controls hint ────────────────────────────────────────────────────────
+    ctx.fillStyle    = 'rgba(255,212,148,0.18)';
     ctx.font         = '12px "Courier New", monospace';
-    ctx.textAlign    = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText('↑↓  SELECT    ENTER  CONFIRM    ESC  MENU', cx, CANVAS.HEIGHT - 18);
+  }
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+  _rrect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);  ctx.quadraticCurveTo(x + w, y,     x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);  ctx.quadraticCurveTo(x,     y + h, x,     y + h - r);
+    ctx.lineTo(x, y + r);      ctx.quadraticCurveTo(x,     y,     x + r, y);
+    ctx.closePath();
+  }
+
+  _star(ctx, cx, cy, r, color, alpha) {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+    ctx.fillStyle   = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur  = 12;
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a  = (i * Math.PI) / 5 - Math.PI / 2;
+      const ri = i % 2 === 0 ? r : r * 0.42;
+      i === 0
+        ? ctx.moveTo(cx + ri * Math.cos(a), cy + ri * Math.sin(a))
+        : ctx.lineTo(cx + ri * Math.cos(a), cy + ri * Math.sin(a));
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
   }
 }

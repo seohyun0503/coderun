@@ -27,9 +27,12 @@ export class Background {
   }
 
   render(ctx) {
-    for (const { key } of LAYERS) {
-      this._drawLayer(ctx, key, this._offsets[key]);
-    }
+    this._drawLayer(ctx, 'bg_far', this._offsets['bg_far']);
+    this._drawLayer(ctx, 'bg_mid', this._offsets['bg_mid']);
+  }
+
+  renderForeground(ctx) {
+    this._drawLayer(ctx, 'bg_fg', this._offsets['bg_fg']);
   }
 
   _drawLayer(ctx, key, rawOffset) {

@@ -271,6 +271,7 @@ export class GameScene extends Scene {
 
     this._bg.render(ctx);
     this._ground.render(ctx);
+    this._bg.renderForeground(ctx);
 
     for (const o of this.obstacles) o.draw(ctx);
     for (const j of this.jellies)   j.draw(ctx);
