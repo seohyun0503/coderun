@@ -1,0 +1,60 @@
+{
+  "stages": [
+    {
+      "id": 1,
+      "name": "부트캠프",
+      "description": "웰컴 투 코드런. 기초부터 시작하자.",
+      "initialSpeed": 400,
+      "maxSpeed": 650,
+      "acceleration": 10,
+      "obstacleIntervalMin": 2.0,
+      "obstacleIntervalMax": 3.2,
+      "itemIntervalMin": 3.0,
+      "itemIntervalMax": 5.0,
+      "scoreGoal": 1000,
+      "bgTheme": "city_night"
+    },
+    {
+      "id": 2,
+      "name": "데드라인",
+      "description": "납기가 코앞이다. 더 빠르게!",
+      "initialSpeed": 550,
+      "maxSpeed": 850,
+      "acceleration": 14,
+      "obstacleIntervalMin": 1.5,
+      "obstacleIntervalMax": 2.5,
+      "itemIntervalMin": 2.5,
+      "itemIntervalMax": 4.0,
+      "scoreGoal": 3000,
+      "bgTheme": "data_center"
+    },
+    {
+      "id": 3,
+      "name": "프로덕션 장애",
+      "description": "새벽 3시, 서버가 터졌다. 살아남아라.",
+      "initialSpeed": 700,
+      "maxSpeed": 1100,
+      "acceleration": 18,
+      "obstacleIntervalMin": 1.0,
+      "obstacleIntervalMax": 2.0,
+      "itemIntervalMin": 2.0,
+      "itemIntervalMax": 3.5,
+      "scoreGoal": 7000,
+      "bgTheme": "server_room"
+    },
+    {
+      "id": 4,
+      "name": "∞ 엔드리스",
+      "description": "끝이 없다. 얼마나 버틸 수 있나?",
+      "initialSpeed": 800,
+      "maxSpeed": 1400,
+      "acceleration": 20,
+      "obstacleIntervalMin": 0.8,
+      "obstacleIntervalMax": 1.8,
+      "itemIntervalMin": 1.5,
+      "itemIntervalMax": 3.0,
+      "scoreGoal": null,
+      "bgTheme": "void"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "sprites": {
+    "sprite1": { "x": 84, "y": 28, "width": 105, "height": 237 },
+    "sprite2": { "x": 333, "y": 56, "width": 121, "height": 209 },
+    "sprite3": { "x": 592, "y": 28, "width": 113, "height": 224 },
+    "sprite4": { "x": 845, "y": 27, "width": 110, "height": 215 },
+    "sprite5": { "x": 592, "y": 28, "width": 113, "height": 224 },
+    "sprite6": { "x": 333, "y": 56, "width": 121, "height": 209 },
+    "sprite7": { "x": 84, "y": 28, "width": 105, "height": 237 }
+  }
+}

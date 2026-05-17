@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="description" content="HTML5 Canvas 기반 2D 횡스크롤 러닝 게임" />
+  <title>CodeRun</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Loading overlay -->
+  <div id="loading">
+    <span>CODERUN</span>
+    <div class="loading-bar-track">
+      <div class="loading-bar-fill"></div>
+    </div>
+    <small>LOADING…</small>
+  </div>
+
+  <!-- Game canvas -->
+  <canvas id="gameCanvas" aria-label="CodeRun 게임 화면"></canvas>
+
+  <!-- Mobile tap hint -->
+  <p id="touch-hint">화면을 탭하면 점프</p>
+
+  <script type="module">
+    import { Game } from './js/game.js';
+    import { AssetLoader } from './js/utils/AssetLoader.js';
+    import { OBSTACLE_MANIFEST } from './js/entities/Obstacle.js';
+    import { PLAYER_MANIFEST } from './js/entities/Player.js';
+    import { BACKGROUND_MANIFEST } from './js/entities/Background.js';
+
+    const canvas  = document.getElementById('gameCanvas');
+    const loading = document.getElementById('loading');
+
+    // Preload all game images before the game loop starts.
+    await AssetLoader.preload({ ...OBSTACLE_MANIFEST, ...PLAYER_MANIFEST, ...BACKGROUND_MANIFEST });
+
+    const game = new Game(canvas);
+    game.init();
+    game.start();
+
+    // Hide loading overlay after first paint
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        loading.classList.add('hidden');
+        loading.addEventListener('transitionend', () => loading.remove(), { once: true });
+      });
+    });
+
+    window.__game = game;
+  </script>
+</body>
+</html>
