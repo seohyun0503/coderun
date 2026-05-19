@@ -7,6 +7,7 @@ import { Ground } from '../entities/Ground.js';
 import { Collision } from '../utils/collision.js';
 import { ObstacleSpawner } from '../utils/ObstacleSpawner.js';
 import { JellySpawner } from '../utils/JellySpawner.js';
+import { soundManager } from '../utils/SoundManager.js';
 
 const PLAYER_X      = Math.floor(CANVAS.WIDTH / 4);
 const SLOW_FACTOR   = 0.2;
@@ -128,8 +129,16 @@ export class GameScene extends Scene {
     }
 
     // ── Input — jump takes priority over slide on the same frame ─────────────
-    if (input.jumpJustPressed) this.player.jump();
-    if (input.slideJustPressed && !input.jumpJustPressed) this.player.slide();
+    if (input.jumpJustPressed) {
+      const jumpType = this.player.jump();
+      if (jumpType === 'jump')            soundManager.jump();
+      else if (jumpType === 'doubleJump') soundManager.doubleJump();
+    }
+    if (input.slideJustPressed && !input.jumpJustPressed) {
+      const wasSliding = this.player._slideActive;
+      this.player.slide();
+      if (!wasSliding) soundManager.slide();
+    }
 
     // ── Timers & stats ────────────────────────────────────────────────────────
     this._elapsedTime += realDt;
@@ -151,6 +160,7 @@ export class GameScene extends Scene {
     if (this._comboCount > 0) {
       this._comboTimer += realDt;
       if (this._comboTimer > COMBO.WINDOW) {
+        if (this._comboCount >= 2) soundManager.comboBreak();
         this._comboCount      = 0;
         this._comboTimer      = 0;
         this._comboMultiplier = 1.0;
@@ -178,7 +188,9 @@ export class GameScene extends Scene {
     }
 
     // ── Entity updates ────────────────────────────────────────────────────────
+    const wasOnGround = this.player._onGround;
     this.player.update(dt, input.slidePressed);
+    if (!wasOnGround && this.player._onGround) soundManager.land();
     for (const o of this.obstacles) o.update(dt, this.worldSpeed);
     for (const j of this.jellies)   j.update(dt, this.worldSpeed);
 
@@ -188,7 +200,9 @@ export class GameScene extends Scene {
     // ── Collisions: obstacles ─────────────────────────────────────────────────
     for (const obs of this.obstacles) {
       if (Collision.checkCollision(this.player, obs, 8)) {
+        const prevHp = this.player.hp;
         this.player.takeDamage();
+        if (this.player.hp < prevHp) soundManager.hit();
         this._slowTimer   = SLOW_DURATION;
         this._comboCount  = 0;
         this._comboTimer  = 0;
@@ -227,6 +241,8 @@ export class GameScene extends Scene {
     this._jellyCount++;
     this._comboTimer = 0;
     this._comboMultiplier = this._calcMultiplier(this._comboCount);
+
+    soundManager.collectJelly(jelly.type, this._comboCount);
 
     // Award score
     const points = Math.round(jelly.score * this._comboMultiplier);

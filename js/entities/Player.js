@@ -123,7 +123,7 @@ export class Player extends Entity {
   // ─── Actions ────────────────────────────────────────────────────────────────
 
   jump() {
-    if (this._jumpsLeft <= 0) return;
+    if (this._jumpsLeft <= 0) return null;
     if (this._slideActive) this._endSlide();
 
     const isFirst = this._jumpsLeft === MAX_JUMPS;
@@ -131,6 +131,7 @@ export class Player extends Entity {
     this.state   = isFirst ? PlayerState.JUMPING : PlayerState.DOUBLE_JUMPING;
     this._jumpsLeft--;
     this._onGround = false;
+    return isFirst ? 'jump' : 'doubleJump';
   }
 
   slide() {

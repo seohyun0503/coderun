@@ -73,7 +73,7 @@ const PATTERN_NAMES = ['line', 'arc', 'cluster'];
 export class JellySpawner {
   constructor() {
     this._timer        = 0;
-    this._nextInterval = 2.5;
+    this._nextInterval = 0.8;
     this._lastPattern  = null;
   }
 
@@ -88,7 +88,7 @@ export class JellySpawner {
     if (this._timer < this._nextInterval) return [];
 
     this._timer        = 0;
-    this._nextInterval = 2.0 + Math.random() * 2.5;
+    this._nextInterval = 0.7 + Math.random() * 0.8;
 
     return this._spawn(worldSpeed, obstacles);
   }
