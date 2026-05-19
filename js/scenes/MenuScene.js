@@ -1,5 +1,6 @@
 import { CANVAS, SCENES } from '../config/constants.js';
 import { Scene } from './Scene.js';
+import { audioManager } from '../utils/AudioManager.js';
 
 const MENU_ITEMS = [
   { label: 'GAME START',       key: 'start',     enabled: true  },
@@ -27,7 +28,10 @@ export class MenuScene extends Scene {
     }));
   }
 
-  enter() { this._sel = 0; }
+  enter() {
+    this._sel = 0;
+    audioManager.play();
+  }
 
   // ─── Update ──────────────────────────────────────────────────────────────────
 

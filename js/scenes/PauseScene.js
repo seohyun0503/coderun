@@ -1,5 +1,6 @@
 import { CANVAS, COLORS, SCENES } from '../config/constants.js';
 import { Scene } from './Scene.js';
+import { audioManager } from '../utils/AudioManager.js';
 
 // ─── Button definitions ───────────────────────────────────────────────────────
 
@@ -33,10 +34,12 @@ export class PauseScene extends Scene {
     this._selectedIndex = 0;
     this._blinkTimer    = 0;
     this._blinkShow     = true;
+    audioManager.pause();
   }
 
   exit() {
     this._underlying = null;
+    audioManager.resume();
   }
 
   // ─── Update ──────────────────────────────────────────────────────────────────

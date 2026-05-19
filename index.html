@@ -30,12 +30,13 @@
     import { OBSTACLE_MANIFEST } from './js/entities/Obstacle.js';
     import { PLAYER_MANIFEST } from './js/entities/Player.js';
     import { BACKGROUND_MANIFEST } from './js/entities/Background.js';
+    import { JELLY_MANIFEST } from './js/entities/Jelly.js';
 
     const canvas  = document.getElementById('gameCanvas');
     const loading = document.getElementById('loading');
 
     // Preload all game images before the game loop starts.
-    await AssetLoader.preload({ ...OBSTACLE_MANIFEST, ...PLAYER_MANIFEST, ...BACKGROUND_MANIFEST });
+    await AssetLoader.preload({ ...OBSTACLE_MANIFEST, ...PLAYER_MANIFEST, ...BACKGROUND_MANIFEST, ...JELLY_MANIFEST });
 
     const game = new Game(canvas);
     game.init();
