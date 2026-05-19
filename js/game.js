@@ -5,6 +5,7 @@ import { MenuScene } from './scenes/MenuScene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { GameOverScene } from './scenes/GameOverScene.js';
 import { PauseScene } from './scenes/PauseScene.js';
+import { PlayerSelectScene } from './scenes/PlayerSelectScene.js'; // TODO: 단계 5에서 정식 등록 후 제거
 
 // ─── SceneManager ─────────────────────────────────────────────────────────────
 
@@ -181,7 +182,7 @@ export class Game {
       [SCENES.PAUSE]:     new PauseScene(this),
     };
 
-    this.sceneManager.setImmediate(initialScene ?? new BlankScene(this));
+    this.sceneManager.setImmediate(initialScene ?? new PlayerSelectScene(this)); // TODO: 단계 5 전까지 임시
   }
 
   // ─── Public API ──────────────────────────────────────────────────────────────
