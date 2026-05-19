@@ -168,8 +168,9 @@ export class GameScene extends Scene {
       this.obstacles.push(...newObstacles);
     }
 
-    // Case 2: new jellies spawned → skip any that overlap an existing obstacle
-    const newJellies = this._jellySpawner.update(dt, this.worldSpeed);
+    // Case 2: new jellies spawned → arc jellies are pre-raised above obstacles,
+    //         line/cluster jellies are still filtered if they overlap
+    const newJellies = this._jellySpawner.update(dt, this.worldSpeed, this.obstacles);
     for (const j of newJellies) {
       if (this.obstacles.every(o => !this._jellyCollides(j, o))) {
         this.jellies.push(j);
