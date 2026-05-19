@@ -7,12 +7,20 @@ const FAIL_HEADLINES = [
   '★  GAME OVER  ★',
   '★  BUILD FAILED  ★',
   '★  취업 실패!  ★',
+  '★  내년에 다시 도전!  ★',
+  '★  서류 탈락 (404 Not Found)  ★',
+  '★  면접 탈락 (Exit Code 1)  ★',
 ];
 
 const CAUSE_MSGS = [
   '당신의 인생에서 1개의 컴파일 에러가 발생했습니다',
   'Segmentation Fault (core dumped)',
   'NullPointerException at life.java:42',
+  'SyntaxError: Unexpected token "꿈"',
+  'Error: Uncaught TypeError: 인생 is not a function',
+  'NullPointerException: 이력서에 \'경력(Experience)\' 객체가 비어있습니다.',
+  '자기소개서 무한 검토 중 StackOverflowError가 발생했습니다.',
+  '면접관의 압박 질문으로 인해 Segmentation Fault가 발생했습니다.'
 ];
 
 const ENCOURAGE_MSGS = [
@@ -21,6 +29,10 @@ const ENCOURAGE_MSGS = [
   '"스택오버플로우 뒤지면 답 나와"',
   '"이번엔 n+1번째 시도야, 화이팅"',
   '"커밋 메시지: fix: fix the previous fix"',
+  '"버그는 성장의 증거야, 계속 도전해!"',
+  '"스펙 리팩토링하고 다시 Push해보자. 잔디는 배신하지 않아."',
+  '"커밋 메시지: fix: fix the previous resume and try again"',
+  '"취업 시장이라는 무한 루프도 언젠가는 탈출(return)하게 되어 있어. 화이팅!"',
 ];
 
 // ─── Button definitions ───────────────────────────────────────────────────────
@@ -85,7 +97,7 @@ export class GameOverScene extends Scene {
       vy:      (Math.random() - 0.85) * 560,
       life:    1.6 + Math.random() * 0.4,
       maxLife: 2.0,
-      color:   `hsl(${Math.random() * 55 + 25}, 95%, 62%)`,
+      color:   `hsl(${Math.random() * 80 + 195}, 65%, 65%)`,  // mist blue → purple
       r:       2 + Math.random() * 5,
     }));
   }
@@ -126,14 +138,14 @@ export class GameOverScene extends Scene {
   render(ctx) {
     const cx = CANVAS.WIDTH / 2;
 
-    // Background — deep warm dark gray
-    ctx.fillStyle = '#0d0b09';
+    // Background — deep indigo-black
+    ctx.fillStyle = '#0b0916';
     ctx.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT);
 
-    // Red-warm radial vignette
+    // Purple vignette
     const vign = ctx.createRadialGradient(cx, CANVAS.HEIGHT / 2, 200, cx, CANVAS.HEIGHT / 2, 700);
     vign.addColorStop(0, 'rgba(0,0,0,0)');
-    vign.addColorStop(1, 'rgba(155,18,8,0.20)');
+    vign.addColorStop(1, 'rgba(75,55,140,0.22)');
     ctx.fillStyle = vign;
     ctx.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT);
 
@@ -150,39 +162,39 @@ export class GameOverScene extends Scene {
     // ── Headline box ─────────────────────────────────────────────────────────
     const pulse  = 0.75 + 0.25 * Math.abs(Math.sin(this._t * 1.4));
     const hdrX = cx - 326, hdrY = 44, hdrW = 652, hdrH = 78;
-    ctx.fillStyle   = 'rgba(110,16,16,0.28)';
-    ctx.strokeStyle = `rgba(255,68,52,${pulse})`;
+    ctx.fillStyle   = 'rgba(55,45,115,0.30)';
+    ctx.strokeStyle = `rgba(120,140,220,${pulse})`;
     ctx.lineWidth   = 2;
     this._rrect(ctx, hdrX, hdrY, hdrW, hdrH, 18);
     ctx.fill(); ctx.stroke();
 
     // Corner stars on headline box
-    this._star(ctx, hdrX + 20,       hdrY + hdrH / 2, 9,  '#ff8060', 0.7);
-    this._star(ctx, hdrX + hdrW - 20, hdrY + hdrH / 2, 9, '#ff8060', 0.7);
+    this._star(ctx, hdrX + 20,        hdrY + hdrH / 2, 9, '#8898c8', 0.7);
+    this._star(ctx, hdrX + hdrW - 20, hdrY + hdrH / 2, 9, '#8898c8', 0.7);
 
-    ctx.shadowColor = '#ff3838';
+    ctx.shadowColor = '#6878c8';
     ctx.shadowBlur  = 28;
-    ctx.fillStyle   = '#ffb090';
+    ctx.fillStyle   = '#c0ccf0';
     ctx.font        = 'bold 50px "Courier New", monospace';
     ctx.fillText(this._headline, cx, hdrY + hdrH / 2);
     ctx.shadowBlur  = 0;
 
     // Cause message
-    ctx.fillStyle    = 'rgba(255,155,125,0.50)';
+    ctx.fillStyle    = 'rgba(155,185,220,0.55)';
     ctx.font         = '14px "Courier New", monospace';
     ctx.textBaseline = 'top';
     ctx.fillText(this._causeMsg, cx, hdrY + hdrH + 14);
 
     // ── Stats card ───────────────────────────────────────────────────────────
-    const cardX = cx - 292, cardY = 158, cardW = 584, cardH = 198;
-    ctx.fillStyle = 'rgba(16,12,7,0.88)';
+    const cardX = cx - 292, cardY = 178, cardW = 584, cardH = 198;
+    ctx.fillStyle = 'rgba(10,8,24,0.90)';
     if (this._newBest) {
       ctx.strokeStyle = '#ffd700';
       ctx.lineWidth   = 2;
       ctx.shadowColor = '#ffd700';
       ctx.shadowBlur  = 14 + 8 * Math.abs(Math.sin(this._t * 2));
     } else {
-      ctx.strokeStyle = '#4a3820';
+      ctx.strokeStyle = '#2e2858';
       ctx.lineWidth   = 1.5;
     }
     this._rrect(ctx, cardX, cardY, cardW, cardH, 20);
@@ -190,13 +202,13 @@ export class GameOverScene extends Scene {
     ctx.shadowBlur = 0;
 
     // Corner stars on card
-    this._star(ctx, cardX + 18,       cardY + 18, 7, '#ffaa30', 0.45);
-    this._star(ctx, cardX + cardW - 18, cardY + 18, 7, '#ffaa30', 0.45);
+    this._star(ctx, cardX + 18,         cardY + 18, 7, '#7888b8', 0.45);
+    this._star(ctx, cardX + cardW - 18, cardY + 18, 7, '#7888b8', 0.45);
 
     const rows = [
       { label: 'SCORE',  value: this._score.toString().padStart(7, '0'),     color: '#00ff88' },
       { label: 'BEST',   value: this._bestScore.toString().padStart(7, '0'), color: '#ffd700' },
-      { label: 'JELLY',  value: this._jellyCount.toString(),                  color: '#ffb347' },
+      { label: 'JELLY',  value: this._jellyCount.toString(),                  color: '#9ab0e8' },
     ];
 
     const rowH = cardH / rows.length;
@@ -205,7 +217,7 @@ export class GameOverScene extends Scene {
 
       ctx.textAlign    = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle    = 'rgba(255,218,165,0.48)';
+      ctx.fillStyle    = 'rgba(175,200,230,0.52)';
       ctx.font         = '16px "Courier New", monospace';
       ctx.fillText(rows[i].label, cardX + 40, ry);
 
@@ -218,7 +230,7 @@ export class GameOverScene extends Scene {
       ctx.shadowBlur  = 0;
 
       if (i < rows.length - 1) {
-        ctx.fillStyle = 'rgba(200,148,55,0.10)';
+        ctx.fillStyle = 'rgba(110,140,200,0.12)';
         ctx.fillRect(cardX + 40, cardY + (i + 1) * rowH - 0.5, cardW - 80, 1);
       }
     }
@@ -240,7 +252,7 @@ export class GameOverScene extends Scene {
 
     // ── Encouragement ────────────────────────────────────────────────────────
     const msgY = cardY + cardH + (this._newBest ? 52 : 24);
-    ctx.fillStyle = 'rgba(255,218,158,0.32)';
+    ctx.fillStyle = 'rgba(175,200,230,0.38)';
     ctx.font      = '15px "Courier New", monospace';
     ctx.fillText(this._encourageMsg, cx, msgY);
 
@@ -254,23 +266,23 @@ export class GameOverScene extends Scene {
       const sel = i === this._selBtn;
 
       if (i === 0) {
-        // RETRY — warm orange
-        ctx.fillStyle   = sel ? 'rgba(255,125,26,0.52)' : 'rgba(195,85,18,0.20)';
-        ctx.strokeStyle = sel ? '#ff9020' : 'rgba(175,75,18,0.55)';
+        // RETRY — mist blue
+        ctx.fillStyle   = sel ? 'rgba(75,110,200,0.52)' : 'rgba(40,50,110,0.25)';
+        ctx.strokeStyle = sel ? '#7888d0' : 'rgba(70,85,155,0.55)';
       } else {
-        // MAIN MENU — dark gold
-        ctx.fillStyle   = sel ? 'rgba(255,172,26,0.20)' : 'rgba(18,13,7,0.74)';
-        ctx.strokeStyle = sel ? '#ffaa20' : 'rgba(98,72,32,0.55)';
+        // MAIN MENU — purple-gray
+        ctx.fillStyle   = sel ? 'rgba(60,85,165,0.22)' : 'rgba(12,10,28,0.80)';
+        ctx.strokeStyle = sel ? '#8898c8' : 'rgba(55,60,115,0.55)';
       }
       ctx.lineWidth = sel ? 2 : 1.5;
       this._rrect(ctx, bx, btnY, BTN_W, BTN_H, 14);
       ctx.fill();
-      if (sel) { ctx.shadowColor = i === 0 ? '#ff8c18' : '#ffaa20'; ctx.shadowBlur = 14; }
+      if (sel) { ctx.shadowColor = i === 0 ? '#7080c8' : '#8898c8'; ctx.shadowBlur = 14; }
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      ctx.fillStyle    = sel ? (i === 0 ? '#ffcc58' : '#ffd058') : 'rgba(255,218,158,0.70)';
-      ctx.shadowColor  = sel ? (i === 0 ? '#ff8c18' : '#ffaa20') : 'transparent';
+      ctx.fillStyle    = sel ? '#c0ccf0' : 'rgba(182,205,235,0.75)';
+      ctx.shadowColor  = sel ? (i === 0 ? '#7080c8' : '#8898c8') : 'transparent';
       ctx.shadowBlur   = sel ? 10 : 0;
       ctx.font         = `${sel ? 'bold ' : ''}19px "Courier New", monospace`;
       ctx.textBaseline = 'middle';
@@ -279,7 +291,7 @@ export class GameOverScene extends Scene {
     }
 
     // ── Controls hint ────────────────────────────────────────────────────────
-    ctx.fillStyle    = 'rgba(255,212,148,0.18)';
+    ctx.fillStyle    = 'rgba(158,185,220,0.20)';
     ctx.font         = '12px "Courier New", monospace';
     ctx.textBaseline = 'bottom';
     ctx.fillText('↑↓  SELECT    ENTER  CONFIRM    ESC  MENU', cx, CANVAS.HEIGHT - 18);

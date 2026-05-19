@@ -66,24 +66,24 @@ export class MenuScene extends Scene {
   render(ctx) {
     const cx = CANVAS.WIDTH / 2;
 
-    // Background — deep warm dark gray
-    ctx.fillStyle = '#0e0c0a';
+    // Background — deep indigo-black
+    ctx.fillStyle = '#0c0a18';
     ctx.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT);
 
-    // Warm radial glow behind title
+    // Purple-gray radial glow behind title
     const grd = ctx.createRadialGradient(cx, 195, 0, cx, 195, 540);
-    grd.addColorStop(0, 'rgba(255,128,20,0.09)');
+    grd.addColorStop(0, 'rgba(100,90,180,0.10)');
     grd.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = grd;
     ctx.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT);
 
-    // Twinkling sparkles (replace matrix rain)
+    // Twinkling sparkles — mist blue palette
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     for (const s of this._sparks) {
       const a = 0.10 + Math.abs(Math.sin(s.ph)) * 0.50;
       ctx.globalAlpha = a;
-      ctx.fillStyle   = s.warm ? '#ffd060' : '#ffaa40';
+      ctx.fillStyle   = s.warm ? '#9ab8d8' : '#7898c0';
       ctx.font        = `${Math.floor(s.r * 4)}px "Courier New"`;
       ctx.fillText('✦', s.x, s.y);
     }
@@ -92,46 +92,46 @@ export class MenuScene extends Scene {
     ctx.textBaseline = 'middle';
 
     // ── Stars flanking title (pulsating) ────────────────────────────────────
-    this._star(ctx, cx - 322, 152, 22, '#ffd700', 0.88 + 0.12 * Math.sin(this._t * 1.8));
-    this._star(ctx, cx + 322, 152, 22, '#ffd700', 0.88 + 0.12 * Math.sin(this._t * 1.8 + 1.0));
-    this._star(ctx, cx - 266, 116, 14, '#ff9940', 0.65 + 0.25 * Math.sin(this._t * 2.3));
-    this._star(ctx, cx + 266, 116, 14, '#ff9940', 0.65 + 0.25 * Math.sin(this._t * 2.3 + 0.8));
-    this._star(ctx, cx - 218, 168,  9, '#ffcc40', 0.45 + 0.35 * Math.sin(this._t * 3.1));
-    this._star(ctx, cx + 218, 168,  9, '#ffcc40', 0.45 + 0.35 * Math.sin(this._t * 3.1 + 0.5));
+    this._star(ctx, cx - 322, 152, 22, '#8090c8', 0.88 + 0.12 * Math.sin(this._t * 1.8));
+    this._star(ctx, cx + 322, 152, 22, '#8090c8', 0.88 + 0.12 * Math.sin(this._t * 1.8 + 1.0));
+    this._star(ctx, cx - 266, 116, 14, '#6888b8', 0.65 + 0.25 * Math.sin(this._t * 2.3));
+    this._star(ctx, cx + 266, 116, 14, '#6888b8', 0.65 + 0.25 * Math.sin(this._t * 2.3 + 0.8));
+    this._star(ctx, cx - 218, 168,  9, '#9898c8', 0.45 + 0.35 * Math.sin(this._t * 3.1));
+    this._star(ctx, cx + 218, 168,  9, '#9898c8', 0.45 + 0.35 * Math.sin(this._t * 3.1 + 0.5));
 
     // ── Title ────────────────────────────────────────────────────────────────
-    ctx.shadowColor = '#ff9918';
+    ctx.shadowColor = '#6878c0';
     ctx.shadowBlur  = 44;
-    ctx.fillStyle   = '#fff5d0';
+    ctx.fillStyle   = '#e0e8f8';
     ctx.font        = 'bold 96px "Courier New", monospace';
     ctx.fillText('CODE RUN', cx, 152);
     ctx.shadowBlur  = 0;
 
     // Subtitle
-    ctx.fillStyle = 'rgba(255,200,110,0.60)';
+    ctx.fillStyle = 'rgba(155,185,215,0.70)';
     ctx.font      = '20px "Courier New", monospace';
     ctx.fillText('취업의 지옥에서 탈출하라!', cx, 220);
 
     // Divider
-    ctx.strokeStyle = 'rgba(255,148,28,0.28)';
+    ctx.strokeStyle = 'rgba(110,140,200,0.32)';
     ctx.lineWidth   = 1;
     ctx.beginPath();
     ctx.moveTo(cx - 190, 252); ctx.lineTo(cx + 190, 252);
     ctx.stroke();
-    ctx.fillStyle = 'rgba(255,148,28,0.55)';
+    ctx.fillStyle = 'rgba(110,140,200,0.60)';
     ctx.beginPath(); ctx.arc(cx, 252, 3.5, 0, Math.PI * 2); ctx.fill();
 
     // ── Menu panel ───────────────────────────────────────────────────────────
     const px = cx - 260, py = 272, pw = 520, ph = 244;
-    ctx.fillStyle   = 'rgba(16,12,7,0.84)';
-    ctx.strokeStyle = '#3e2d18';
+    ctx.fillStyle   = 'rgba(10,8,24,0.88)';
+    ctx.strokeStyle = '#2e2858';
     ctx.lineWidth   = 1.5;
     this._rrect(ctx, px, py, pw, ph, 20);
     ctx.fill(); ctx.stroke();
 
     // Corner star decorations on panel
-    this._star(ctx, px + 16, py + 14, 6, '#ffaa30', 0.5);
-    this._star(ctx, px + pw - 16, py + 14, 6, '#ffaa30', 0.5);
+    this._star(ctx, px + 16,       py + 14, 6, '#7888b8', 0.5);
+    this._star(ctx, px + pw - 16,  py + 14, 6, '#7888b8', 0.5);
 
     const iH = 58, iY0 = py + 10;
     for (let i = 0; i < MENU_ITEMS.length; i++) {
@@ -140,17 +140,17 @@ export class MenuScene extends Scene {
       const sel  = i === this._sel && item.enabled;
 
       if (sel) {
-        // Warm amber highlight row
-        ctx.fillStyle   = 'rgba(255,152,24,0.16)';
-        ctx.strokeStyle = '#ffaa22';
+        // Mist blue highlight row
+        ctx.fillStyle   = 'rgba(90,110,200,0.18)';
+        ctx.strokeStyle = '#8898c8';
         ctx.lineWidth   = 1.5;
         this._rrect(ctx, px + 12, iY0 + i * iH + 5, pw - 24, iH - 10, 12);
         ctx.fill(); ctx.stroke();
       }
 
       if (item.enabled) {
-        ctx.fillStyle   = sel ? '#ffd060' : 'rgba(255,238,200,0.85)';
-        ctx.shadowColor = sel ? '#ffaa20' : 'transparent';
+        ctx.fillStyle   = sel ? '#c0ccf0' : 'rgba(185,205,235,0.85)';
+        ctx.shadowColor = sel ? '#8090c8' : 'transparent';
         ctx.shadowBlur  = sel ? 12 : 0;
         ctx.font        = `${sel ? 'bold ' : ''}20px "Courier New", monospace`;
 
@@ -161,7 +161,7 @@ export class MenuScene extends Scene {
         }
         ctx.fillText(item.label, cx, iy);
       } else {
-        ctx.fillStyle  = 'rgba(200,168,108,0.28)';
+        ctx.fillStyle  = 'rgba(140,165,205,0.35)';
         ctx.shadowBlur = 0;
         ctx.font       = '19px "Courier New", monospace';
         ctx.fillText(item.label + '  ·  COMING SOON', cx, iy);
@@ -173,18 +173,18 @@ export class MenuScene extends Scene {
     const best  = parseInt(localStorage.getItem('coderun_best') ?? '0', 10);
     const chipW = 238, chipH = 44;
     const chipX = cx - chipW / 2, chipY = py + ph + 16;
-    ctx.fillStyle   = 'rgba(16,12,7,0.78)';
-    ctx.strokeStyle = 'rgba(255,200,48,0.38)';
+    ctx.fillStyle   = 'rgba(10,8,24,0.82)';
+    ctx.strokeStyle = 'rgba(130,155,210,0.42)';
     ctx.lineWidth   = 1.5;
     this._rrect(ctx, chipX, chipY, chipW, chipH, 12);
     ctx.fill(); ctx.stroke();
-    ctx.fillStyle    = 'rgba(255,215,0,0.78)';
+    ctx.fillStyle    = 'rgba(178,200,235,0.85)';
     ctx.font         = '14px "Courier New", monospace';
     ctx.textBaseline = 'middle';
     ctx.fillText(`★  BEST  ${best.toString().padStart(7, '0')}`, cx, chipY + chipH / 2);
 
     // ── Controls hint ────────────────────────────────────────────────────────
-    ctx.fillStyle    = 'rgba(255,215,148,0.20)';
+    ctx.fillStyle    = 'rgba(158,185,220,0.22)';
     ctx.font         = '13px "Courier New", monospace';
     ctx.textBaseline = 'bottom';
     ctx.fillText('↑↓  SELECT    ENTER / SPACE  CONFIRM', cx, CANVAS.HEIGHT - 18);
