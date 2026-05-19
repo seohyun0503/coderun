@@ -187,7 +187,7 @@ export class GameScene extends Scene {
 
     // ── Collisions: obstacles ─────────────────────────────────────────────────
     for (const obs of this.obstacles) {
-      if (Collision.checkCollision(this.player, obs, 6)) {
+      if (Collision.checkCollision(this.player, obs, 8)) {
         this.player.takeDamage();
         this._slowTimer   = SLOW_DURATION;
         this._comboCount  = 0;

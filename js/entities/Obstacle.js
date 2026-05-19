@@ -18,8 +18,8 @@ import { AssetLoader } from '../utils/AssetLoader.js';
 const CONFIGS = {
   // ── Jump obstacles (120 % of original size) ──────────────────────────────
   TestPaperStack: {
-    width: 105, height: 155,
-    getY: () => GROUND_Y - 155,
+    width: 105, height: 150,
+    getY: () => GROUND_Y - 150,
     avoidHint: 'jump',
     damage: 1,
   },
@@ -37,7 +37,7 @@ const CONFIGS = {
   },
   // ── Slide-only obstacles (must duck under, cannot jump over) ─────────────
   NaggingBubble: {
-    width: 440, height: 470,
+    width: 544, height: 470,
     getY: () => GROUND_Y - 570,   // top=30, bottom=GROUND_Y-100=500
     avoidHint: 'slide',
     damage: 1,
@@ -66,9 +66,13 @@ export const OBSTACLE_META = Object.fromEntries(
 
 // ─── Obstacle asset manifest (mirrors OBSTACLE_TYPES) ────────────────────────
 
-export const OBSTACLE_MANIFEST = Object.fromEntries(
-  OBSTACLE_TYPES.map(k => [k, `./assets/images/Obstacle/${k}.png`]),
-);
+export const OBSTACLE_MANIFEST = {
+  TestPaperStack: './assets/images/Obstacle/TestPaperStack.png',
+  JobPosting:     './assets/images/Obstacle/JobPosting.png',
+  HeavyTextbook:  './assets/images/Obstacle/HeavyTextbook.png',
+  NaggingBubble:  './assets/images/Obstacle/NaggingBubble2.png',
+  DeadlineBanner: './assets/images/Obstacle/DeadlineBanner.png',
+};
 
 // ─── Obstacle ─────────────────────────────────────────────────────────────────
 
