@@ -16,22 +16,25 @@ import { AssetLoader } from '../utils/AssetLoader.js';
 //   DeadlineBanner top = GROUND_Y−540 =  60 < 101 → impossible ✓
 
 const CONFIGS = {
-  // ── Jump obstacles (120 % of original size) ──────────────────────────────
+  // ── Jump obstacles ────────────────────────────────────────────────────────
+  // HeavyTextbook  : 1단 점프 회피 (×0.7)
+  // TestPaperStack : 이단 점프 회피 (×1.4)
+  // JobPosting     : 이단 점프 회피 (×1.4)
   TestPaperStack: {
-    width: 105, height: 150,
-    getY: () => GROUND_Y - 150,
+    width: 132, height: 189,
+    getY: () => GROUND_Y - 189,
     avoidHint: 'jump',
     damage: 1,
   },
   JobPosting: {
-    width: 83, height: 195,
-    getY: () => GROUND_Y - 195,
+    width: 104, height: 246,
+    getY: () => GROUND_Y - 246,
     avoidHint: 'jump',
     damage: 1,
   },
   HeavyTextbook: {
-    width: 129, height: 111,
-    getY: () => GROUND_Y - 111,
+    width: 90, height: 78,
+    getY: () => GROUND_Y - 78,
     avoidHint: 'jump',
     damage: 1,
   },

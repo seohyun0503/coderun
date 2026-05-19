@@ -70,6 +70,10 @@ export class GameScene extends Scene {
     // Slow-motion
     this._slowTimer = 0;
 
+    // Hit-stop & camera shake
+    this._hitStop = 0;
+    this._shake   = { intensity: 0, duration: 0 };
+
     // Difficulty
     this._difficultyTimer     = 0;
     this.difficultyMultiplier = 1.0;
@@ -110,6 +114,9 @@ export class GameScene extends Scene {
       this.game.pauseGame(this);
       return;
     }
+
+    // Hit-stop: 프리즈 구간 동안 게임 로직 정지
+    if (this._hitStop > 0) { this._hitStop -= realDt; return; }
 
     // Slow-motion
     if (this._slowTimer > 0) this._slowTimer -= realDt;
@@ -202,7 +209,11 @@ export class GameScene extends Scene {
       if (Collision.checkCollision(this.player, obs, 8)) {
         const prevHp = this.player.hp;
         this.player.takeDamage();
-        if (this.player.hp < prevHp) soundManager.hit();
+        if (this.player.hp < prevHp) {
+          soundManager.hit();
+          this._hitStop = 0.05;
+          this._addShake(12, 0.2);
+        }
         this._slowTimer   = SLOW_DURATION;
         this._comboCount  = 0;
         this._comboTimer  = 0;
@@ -270,6 +281,11 @@ export class GameScene extends Scene {
     );
   }
 
+  _addShake(intensity, duration) {
+    this._shake.intensity = intensity;
+    this._shake.duration  = duration;
+  }
+
   _calcMultiplier(count) {
     const thresholds    = COMBO.THRESHOLDS;
     const multipliers   = COMBO.MULTIPLIERS;
@@ -283,6 +299,15 @@ export class GameScene extends Scene {
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   render(ctx) {
+    // 카메라 쉐이크 — 게임 월드만 흔들고 HUD는 고정
+    ctx.save();
+    if (this._shake.duration > 0) {
+      const dx = (Math.random() - 0.5) * this._shake.intensity;
+      const dy = (Math.random() - 0.5) * this._shake.intensity;
+      ctx.translate(dx, dy);
+      this._shake.duration -= 1 / 60;
+    }
+
     this._bg.render(ctx);
     this._ground.render(ctx);
     this._bg.renderForeground(ctx);
@@ -299,6 +324,7 @@ export class GameScene extends Scene {
       Collision.drawDebugBoxes(ctx, this.obstacles, '#ff3333', 6);
       Collision.drawDebugBoxes(ctx, this.jellies,   '#f7df1e', 2);
     }
+    ctx.restore();
 
     this._drawHUD(ctx);
     if (DEBUG.DEBUG_MODE) this._drawDebugOverlay(ctx);

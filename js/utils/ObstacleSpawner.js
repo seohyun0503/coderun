@@ -12,15 +12,21 @@ import { Obstacle, OBSTACLE_META } from '../entities/Obstacle.js';
 // Cross-pattern hint transitions are also enforced by minimum timer checks in
 // update(): J→S needs 1.5 s, S→J needs 0.9 s since last commit.
 
-const MSD_SLIDE_TO_JUMP = 700;
-const MSD_JUMP_TO_SLIDE = 900;
-const MSD_JUMP_TO_JUMP  =  80;
+const MSD_SLIDE_TO_JUMP      = 700;
+const MSD_JUMP_TO_SLIDE      = 900;
+const MSD_JUMP_TO_JUMP       =  80;
+const MSD_DOUBLE_TO_DOUBLE   = 200;  // 이단 점프 장애물 연속 시 최소 간격
+
+// 이단 점프로만 회피 가능한 장애물
+const DOUBLE_JUMP_OBSTACLES = new Set(['JobPosting', 'TestPaperStack']);
 
 function _minGap(fromKey, toKey) {
   const from = OBSTACLE_META[fromKey].avoidHint;
   const to   = OBSTACLE_META[toKey].avoidHint;
   if (from === 'slide' && to === 'jump') return MSD_SLIDE_TO_JUMP;
   if (from === 'jump'  && to === 'slide') return MSD_JUMP_TO_SLIDE;
+  if (DOUBLE_JUMP_OBSTACLES.has(fromKey) && DOUBLE_JUMP_OBSTACLES.has(toKey))
+    return MSD_DOUBLE_TO_DOUBLE;
   return MSD_JUMP_TO_JUMP;
 }
 
