@@ -127,9 +127,9 @@ export class GameScene extends Scene {
       return;
     }
 
-    // ── Input ─────────────────────────────────────────────────────────────────
+    // ── Input — jump takes priority over slide on the same frame ─────────────
     if (input.jumpJustPressed) this.player.jump();
-    if (input.slidePressed)    this.player.slide();
+    if (input.slideJustPressed && !input.jumpJustPressed) this.player.slide();
 
     // ── Timers & stats ────────────────────────────────────────────────────────
     this._elapsedTime += realDt;

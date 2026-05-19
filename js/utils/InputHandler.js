@@ -102,6 +102,11 @@ export class InputHandler {
     return this._held.has('ArrowDown') || this._held.has('KeyS');
   }
 
+  /** ↓ / S first pressed this frame (slide trigger — fires once per press). */
+  get slideJustPressed() {
+    return this._justPressed.has('ArrowDown') || this._justPressed.has('KeyS');
+  }
+
   /** ESC pressed this frame (pause trigger). */
   get pauseJustPressed() {
     return this._justPressed.has('Escape');
