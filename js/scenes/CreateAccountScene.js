@@ -1,6 +1,6 @@
-import { Scene }    from './Scene.js';
-import { CANVAS }   from '../config/constants.js';
-import { Accounts } from '../auth/AccountManager.js';
+import { Scene }           from './Scene.js';
+import { CANVAS, SCENES }  from '../config/constants.js';
+import { Accounts }        from '../auth/AccountManager.js';
 
 // ─── 키패드 레이아웃 ──────────────────────────────────────────────────────────
 
@@ -98,8 +98,9 @@ export class CreateAccountScene extends Scene {
       const val = this._hiddenInput.value;
       if (e.inputType === 'insertCompositionText' && e.data) {
         _lastCompData = e.data;
-        const cl = e.data.length;
-        this._nickname = val.slice(cl) + val.slice(0, cl);
+        const cl        = e.data.length;
+        const confirmed = val.slice(cl).split('').reverse().join('');
+        this._nickname  = confirmed + val.slice(0, cl);
       } else if (e.inputType === 'insertText' && e.data === _lastCompData) {
         // Chrome이 blur로 composition이 종료될 때 마지막 조합 글자를
         // insertText로 한 번 더 삽입해 hiddenInput.value를 오염시킴 → 무시
@@ -169,10 +170,10 @@ export class CreateAccountScene extends Scene {
     if (this._showDialog) {
       const btn = this._hitDialogBtn(vx, vy);
       if (btn === 'mine') {
-        console.log('[CreateAccount] 내 계정이에요 → 로그인:', this._dialogDupId);
+        const dupId = this._dialogDupId;
         this._closeDialog();
+        this.game.switchScene('pinEntry', { accountId: dupId });
       } else if (btn === 'other') {
-        console.log('[CreateAccount] 다른 사람이에요 → 다른 번호로');
         this._closeDialog();
       }
       return;
@@ -201,8 +202,7 @@ export class CreateAccountScene extends Scene {
   }
 
   _goBack() {
-    console.log('[CreateAccount] back to player select');
-    // TODO: 단계 5에서 this.game.switchScene('playerSelect')로 교체
+    this.game.switchScene('playerSelect');
   }
 
   // ─── 숫자 입력 ────────────────────────────────────────────────────────────────
@@ -251,10 +251,9 @@ export class CreateAccountScene extends Scene {
     }
 
     Accounts.createAccount(this._nickname, this._pin)
-      .then(account => {
-        console.log('[CreateAccount] account created:', account);
-        setTimeout(() => console.log('[CreateAccount] would switch to MenuScene'), 500);
-        // TODO: 단계 5에서 this.game.switchScene('menu')로 교체
+      .then(() => {
+        this.game.isGuest = false;
+        this.game.switchScene(SCENES.MENU);
       })
       .catch(err => {
         const msg = err?.message ?? '';

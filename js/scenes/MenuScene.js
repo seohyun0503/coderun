@@ -1,6 +1,15 @@
 import { CANVAS, SCENES } from '../config/constants.js';
-import { Scene } from './Scene.js';
-import { audioManager } from '../utils/AudioManager.js';
+import { Scene }          from './Scene.js';
+import { audioManager }   from '../utils/AudioManager.js';
+import { Accounts }       from '../auth/AccountManager.js';
+
+// ─── User chip / dropdown ────────────────────────────────────────────────────
+const CHIP_X      = 1100;
+const CHIP_Y      = 12;
+const CHIP_W      = 160;
+const CHIP_H      = 32;
+const DD_Y        = CHIP_Y + CHIP_H + 4;
+const DD_ITEM_H   = 40;
 
 const MENU_ITEMS = [
   { label: 'GAME START',       key: 'start',     enabled: true  },
@@ -26,11 +35,44 @@ export class MenuScene extends Scene {
       sp:   0.7 + Math.random() * 1.4,
       warm: Math.random() > 0.5,
     }));
+
+    // User chip / dropdown state
+    this._dropdownOpen   = false;
+    this._cachedAccount  = null;
+    this._mouseX         = -1;
+    this._mouseY         = -1;
+    this._onMouseMove    = null;
+    this._onClick        = null;
   }
 
   enter() {
-    this._sel = 0;
+    this._sel           = 0;
+    this._dropdownOpen  = false;
+    this._cachedAccount = Accounts.getCurrent();
     audioManager.play();
+
+    const toV = (e) => {
+      const rect = this.game.canvas.getBoundingClientRect();
+      const dpr  = window.devicePixelRatio ?? 1;
+      return {
+        vx: ((e.clientX - rect.left) * dpr - this.game._offsetX) / this.game._scale,
+        vy: ((e.clientY - rect.top)  * dpr - this.game._offsetY) / this.game._scale,
+      };
+    };
+
+    this._onMouseMove = (e) => { const { vx, vy } = toV(e); this._mouseX = vx; this._mouseY = vy; };
+    this._onClick     = (e) => { const { vx, vy } = toV(e); this._handleMenuClick(vx, vy); };
+
+    this.game.canvas.addEventListener('mousemove', this._onMouseMove);
+    this.game.canvas.addEventListener('click',     this._onClick);
+  }
+
+  exit() {
+    this.game.canvas.removeEventListener('mousemove', this._onMouseMove);
+    this.game.canvas.removeEventListener('click',     this._onClick);
+    this._onMouseMove = null;
+    this._onClick     = null;
+    this.game.canvas.style.cursor = 'default';
   }
 
   // ─── Update ──────────────────────────────────────────────────────────────────
@@ -42,6 +84,7 @@ export class MenuScene extends Scene {
     if (this._blink >= 0.5) { this._blink = 0; this._blinkShow = !this._blinkShow; }
     for (const s of this._sparks) s.ph += s.sp * dt;
 
+    if (input.isKeyJustPressed('Escape')) { this._dropdownOpen = false; return; }
     if (input.isKeyJustPressed('ArrowUp'))   this._move(-1);
     if (input.isKeyJustPressed('ArrowDown')) this._move(+1);
     if (input.isKeyJustPressed('Enter') || input.isKeyJustPressed('Space')) this._confirm();
@@ -188,6 +231,94 @@ export class MenuScene extends Scene {
     ctx.font         = '13px "Courier New", monospace';
     ctx.textBaseline = 'bottom';
     ctx.fillText('↑↓  SELECT    ENTER / SPACE  CONFIRM', cx, CANVAS.HEIGHT - 18);
+
+    // ── User chip + dropdown ─────────────────────────────────────────────────
+    this._renderUserChip(ctx);
+    this._renderDropdown(ctx);
+  }
+
+  // ─── User chip / dropdown ────────────────────────────────────────────────────
+
+  _dropdownItems() {
+    return [{ label: '플레이어 변경', key: 'switch' }];
+  }
+
+  _isChipHit(vx, vy) {
+    return vx >= CHIP_X && vx < CHIP_X + CHIP_W && vy >= CHIP_Y && vy < CHIP_Y + CHIP_H;
+  }
+
+  _dropdownItemAt(vx, vy) {
+    if (!this._dropdownOpen) return -1;
+    const items = this._dropdownItems();
+    for (let i = 0; i < items.length; i++) {
+      const iy = DD_Y + i * DD_ITEM_H;
+      if (vx >= CHIP_X && vx < CHIP_X + CHIP_W && vy >= iy && vy < iy + DD_ITEM_H) return i;
+    }
+    return -1;
+  }
+
+  _handleMenuClick(vx, vy) {
+    if (this._dropdownOpen) {
+      const idx = this._dropdownItemAt(vx, vy);
+      if (idx === 0) {
+        // 플레이어 변경
+        Accounts.switchPlayer();
+        this.game.isGuest = false;
+        this.game.switchScene('playerSelect');
+        return;
+      }
+      // click outside dropdown → close
+      this._dropdownOpen = false;
+      return;
+    }
+    if (this._isChipHit(vx, vy)) {
+      this._dropdownOpen = true;
+    }
+  }
+
+  _renderUserChip(ctx) {
+    const account = this._cachedAccount;
+    const label   = this.game.isGuest || !account ? '게스트' : account.nickname;
+    const hov     = this._isChipHit(this._mouseX, this._mouseY);
+
+    ctx.fillStyle   = hov ? 'rgba(30,26,48,0.95)' : 'rgba(20,18,38,0.88)';
+    ctx.strokeStyle = hov ? 'rgba(140,160,220,0.70)' : 'rgba(110,130,200,0.35)';
+    ctx.lineWidth   = 1.5;
+    this._rrect(ctx, CHIP_X, CHIP_Y, CHIP_W, CHIP_H, 8);
+    ctx.fill(); ctx.stroke();
+
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle    = hov ? '#c8d8f8' : 'rgba(185,205,235,0.80)';
+    ctx.font         = '13px "Courier New", monospace';
+    const display = label.length > 10 ? label.slice(0, 10) + '…' : label;
+    ctx.fillText('👤 ' + display + '  ▾', CHIP_X + CHIP_W / 2, CHIP_Y + CHIP_H / 2);
+  }
+
+  _renderDropdown(ctx) {
+    if (!this._dropdownOpen) return;
+    const items = this._dropdownItems();
+    const ddH   = items.length * DD_ITEM_H;
+
+    ctx.fillStyle   = 'rgba(14,12,28,0.97)';
+    ctx.strokeStyle = 'rgba(110,130,200,0.45)';
+    ctx.lineWidth   = 1.5;
+    this._rrect(ctx, CHIP_X, DD_Y, CHIP_W, ddH, 8);
+    ctx.fill(); ctx.stroke();
+
+    for (let i = 0; i < items.length; i++) {
+      const iy  = DD_Y + i * DD_ITEM_H;
+      const hov = this._dropdownItemAt(this._mouseX, this._mouseY) === i;
+      if (hov) {
+        ctx.fillStyle = 'rgba(90,110,200,0.22)';
+        ctx.fillRect(CHIP_X + 1, iy + 1, CHIP_W - 2, DD_ITEM_H - 2);
+      }
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle    = hov ? '#c0ccf0' : 'rgba(185,205,235,0.80)';
+      ctx.font         = '13px "Courier New", monospace';
+      ctx.fillText(items[i].label, CHIP_X + CHIP_W / 2, iy + DD_ITEM_H / 2);
+    }
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────────

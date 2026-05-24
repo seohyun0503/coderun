@@ -1,6 +1,6 @@
-import { Scene }    from './Scene.js';
-import { CANVAS }   from '../config/constants.js';
-import { Accounts } from '../auth/AccountManager.js';
+import { Scene }           from './Scene.js';
+import { CANVAS, SCENES }  from '../config/constants.js';
+import { Accounts }        from '../auth/AccountManager.js';
 
 // ─── 키패드 레이아웃 (CreateAccountScene과 동일) ─────────────────────────────
 
@@ -54,15 +54,13 @@ export class PinEntryScene extends Scene {
     this._stopShake();
 
     if (!payload?.accountId) {
-      console.error('[PinEntry] no accountId in payload');
-      // TODO: 단계 5에서 this.game.switchScene('playerSelect')로 교체
+      this.game.switchScene('playerSelect');
       return;
     }
 
     const found = Accounts.listAccounts().find(a => a.id === payload.accountId);
     if (!found) {
-      console.error('[PinEntry] account not found:', payload.accountId);
-      // TODO: 단계 5에서 this.game.switchScene('playerSelect')로 교체
+      this.game.switchScene('playerSelect');
       return;
     }
     this._account = found;
@@ -149,10 +147,9 @@ export class PinEntryScene extends Scene {
     if (!this._account || this._isLoggingIn) return;
     this._isLoggingIn = true;
     try {
-      const account = await Accounts.login(this._account.id, this._pin);
-      console.log('[PinEntry] login success:', account);
-      setTimeout(() => console.log('[PinEntry] would switch to MenuScene'), 300);
-      // TODO: 단계 5에서 this.game.switchScene('menu')로 교체
+      await Accounts.login(this._account.id, this._pin);
+      this.game.isGuest = false;
+      setTimeout(() => this.game.switchScene(SCENES.MENU), 300);
     } catch {
       this._pin = '';
       this._failCount++;
@@ -168,8 +165,7 @@ export class PinEntryScene extends Scene {
   }
 
   _goBack() {
-    console.log('[PinEntry] back to player select');
-    // TODO: 단계 5에서 this.game.switchScene('playerSelect')로 교체
+    this.game.switchScene('playerSelect');
   }
 
   // ─── 잠금 상태 ────────────────────────────────────────────────────────────────

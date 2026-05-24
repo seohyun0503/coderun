@@ -1,6 +1,6 @@
-import { Scene }    from './Scene.js';
-import { CANVAS }   from '../config/constants.js';
-import { Accounts } from '../auth/AccountManager.js';
+import { Scene }           from './Scene.js';
+import { CANVAS, SCENES }  from '../config/constants.js';
+import { Accounts }        from '../auth/AccountManager.js';
 
 // ─── 카드 레이아웃 상수 ───────────────────────────────────────────────────────
 //
@@ -110,15 +110,17 @@ export class PlayerSelectScene extends Scene {
     for (const { x, y, account } of this._cardRects()) {
       if (this._isHit(x, y, vx, vy)) {
         if (account === null) {
-          console.log('[PlayerSelect] create new account');
+          this.game.switchScene('createAccount');
         } else {
-          console.log('[PlayerSelect] selected account:', account);
+          this.game.switchScene('pinEntry', { accountId: account.id });
         }
         return;
       }
     }
     if (this._isGuestHovered()) {
-      console.log('[PlayerSelect] guest mode');
+      this.game.isGuest = true;
+      Accounts.setCurrent(null);
+      this.game.switchScene(SCENES.MENU);
     }
   }
 

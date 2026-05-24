@@ -1,11 +1,14 @@
 import { CANVAS, SCENES, DEBUG } from './config/constants.js';
-import { InputHandler } from './utils/InputHandler.js';
-import { BlankScene } from './scenes/BlankScene.js';
-import { MenuScene } from './scenes/MenuScene.js';
-import { GameScene } from './scenes/GameScene.js';
-import { GameOverScene } from './scenes/GameOverScene.js';
-import { PauseScene } from './scenes/PauseScene.js';
-import { PlayerSelectScene } from './scenes/PlayerSelectScene.js'; // TODO: 단계 5에서 정식 등록 후 제거
+import { InputHandler }          from './utils/InputHandler.js';
+import { BlankScene }            from './scenes/BlankScene.js';
+import { MenuScene }             from './scenes/MenuScene.js';
+import { GameScene }             from './scenes/GameScene.js';
+import { GameOverScene }         from './scenes/GameOverScene.js';
+import { PauseScene }            from './scenes/PauseScene.js';
+import { PlayerSelectScene }     from './scenes/PlayerSelectScene.js';
+import { CreateAccountScene }    from './scenes/CreateAccountScene.js';
+import { PinEntryScene }         from './scenes/PinEntryScene.js';
+import { Accounts }              from './auth/AccountManager.js';
 
 // ─── SceneManager ─────────────────────────────────────────────────────────────
 
@@ -164,6 +167,8 @@ export class Game {
     // Named scene registry for string-key switchScene
     this._namedScenes = {};
 
+    this.isGuest = false;
+
     this._loop = this._loop.bind(this);
   }
 
@@ -180,9 +185,23 @@ export class Game {
       [SCENES.GAME]:      new GameScene(this),
       [SCENES.GAME_OVER]: new GameOverScene(this),
       [SCENES.PAUSE]:     new PauseScene(this),
+      'playerSelect':     new PlayerSelectScene(this),
+      'createAccount':    new CreateAccountScene(this),
+      'pinEntry':         new PinEntryScene(this),
     };
 
-    this.sceneManager.setImmediate(initialScene ?? new PlayerSelectScene(this)); // TODO: 단계 5 전까지 임시
+    if (initialScene) {
+      this.sceneManager.setImmediate(initialScene);
+      return;
+    }
+    const current = Accounts.getCurrent();
+    if (current) {
+      this.sceneManager.setImmediate(this._namedScenes[SCENES.MENU]);
+    } else if (Accounts.listAccounts().length === 0) {
+      this.sceneManager.setImmediate(this._namedScenes['createAccount']);
+    } else {
+      this.sceneManager.setImmediate(this._namedScenes['playerSelect']);
+    }
   }
 
   // ─── Public API ──────────────────────────────────────────────────────────────
